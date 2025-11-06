@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Download, Trash2, RefreshCw } from 'lucide-react';
+import { Search, Download, Trash2, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Lead } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -13,103 +13,142 @@ import { format } from 'date-fns';
 import Papa from 'papaparse';
 import { downloadBlob } from '@/lib/helpers';
 
+const PAGE_SIZE = 50;
+
 export default function DatabasePage() {
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [stats, setStats] = useState({
     total: 0,
     campaigns: [] as string[],
   });
 
+  // Debounced search query
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     loadLeads();
-  }, []);
+  }, [currentPage, debouncedSearch]);
 
   useEffect(() => {
-    filterLeads();
-  }, [searchQuery, leads]);
+    loadStats();
+  }, []);
 
-  const loadLeads = async () => {
+  const loadLeads = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('leads')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('date_added', { ascending: false });
+
+      // Apply search filter
+      if (debouncedSearch.trim()) {
+        const queryLower = debouncedSearch.toLowerCase();
+        query = query.or(
+          `email.ilike.%${queryLower}%,display_name.ilike.%${queryLower}%,campaigns.cs.{${queryLower}}`
+        );
+      }
+
+      // Apply pagination
+      const from = (currentPage - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
 
       setLeads(data || []);
-      
-      // Calculate stats
-      const allCampaigns = new Set<string>();
-      (data || []).forEach(lead => {
-        lead.campaigns.forEach((c: string) => allCampaigns.add(c));
-      });
-      
-      setStats({
-        total: data?.length || 0,
-        campaigns: Array.from(allCampaigns).sort(),
-      });
+      setTotalCount(count || 0);
     } catch (error) {
       console.error('Error loading leads:', error);
       toast.error('Failed to load leads');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearch]);
 
-  const filterLeads = () => {
-    if (!searchQuery.trim()) {
-      setFilteredLeads(leads);
-      return;
+  const loadStats = useCallback(async () => {
+    try {
+      // Get total count and campaigns efficiently
+      const { data, error } = await supabase
+        .from('leads')
+        .select('campaigns')
+        .limit(1000); // Limit for performance
+
+      if (error) throw error;
+
+      const allCampaigns = new Set<string>();
+      data?.forEach(lead => {
+        lead.campaigns?.forEach((c: string) => allCampaigns.add(c));
+      });
+
+      setStats({
+        total: totalCount,
+        campaigns: Array.from(allCampaigns).sort(),
+      });
+    } catch (error) {
+      console.error('Error loading stats:', error);
     }
+  }, [totalCount]);
 
-    const query = searchQuery.toLowerCase();
-    const filtered = leads.filter(lead => {
-      const email = lead.email.toLowerCase();
-      const emailParts = email.split('@');
-      const emailUsername = emailParts[0] || '';
-      const emailDomain = emailParts[1] || '';
+  const filteredLeads = useMemo(() => {
+    // Server-side filtering is already applied, this is just for display
+    return leads;
+  }, [leads]);
+
+  const handleExportAll = async () => {
+    try {
+      setIsLoading(true);
       
-      return (
-        // Full email search
-        email.includes(query) ||
-        // Email username search (before @)
-        emailUsername.includes(query) ||
-        // Email domain search (after @)
-        emailDomain.includes(query) ||
-        // Display name search
-        (lead.display_name?.toLowerCase().includes(query) || false) ||
-        // Campaign search
-        lead.campaigns.some(c => c.toLowerCase().includes(query))
-      );
-    });
-    setFilteredLeads(filtered);
-  };
+      // Fetch all leads for export
+      let query = supabase
+        .from('leads')
+        .select('*')
+        .order('date_added', { ascending: false });
 
-  const handleExportAll = () => {
-    if (filteredLeads.length === 0) {
-      toast.error('No leads to export');
-      return;
+      if (debouncedSearch.trim()) {
+        const queryLower = debouncedSearch.toLowerCase();
+        query = query.or(
+          `email.ilike.%${queryLower}%,display_name.ilike.%${queryLower}%,campaigns.cs.{${queryLower}}`
+        );
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      const csvData = data.map(lead => ({
+        email: lead.email,
+        display_name: lead.display_name,
+        campaigns: lead.campaigns.join('; '),
+        date_added: lead.date_added,
+        last_updated: lead.last_updated,
+      }));
+
+      const csv = Papa.unparse(csvData);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const filename = `master-database-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+      downloadBlob(blob, filename);
+      
+      toast.success(`Exported ${data.length} leads`);
+    } catch (error) {
+      console.error('Error exporting leads:', error);
+      toast.error('Failed to export leads');
+    } finally {
+      setIsLoading(false);
     }
-
-    const csvData = filteredLeads.map(lead => ({
-      email: lead.email,
-      display_name: lead.display_name,
-      campaigns: lead.campaigns.join('; '),
-      date_added: lead.date_added,
-      last_updated: lead.last_updated,
-    }));
-
-    const csv = Papa.unparse(csvData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const filename = `master-database-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    downloadBlob(blob, filename);
-    
-    toast.success(`Exported ${filteredLeads.length} leads`);
   };
 
   const handleDeleteLead = async (email: string) => {
@@ -127,11 +166,14 @@ export default function DatabasePage() {
 
       toast.success('Lead deleted');
       loadLeads();
+      loadStats();
     } catch (error) {
       console.error('Error deleting lead:', error);
       toast.error('Failed to delete lead');
     }
   };
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
@@ -151,7 +193,7 @@ export default function DatabasePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-blue-600">{stats.total.toLocaleString()}</div>
+            <div className="text-4xl font-bold text-blue-600">{totalCount.toLocaleString()}</div>
           </CardContent>
         </Card>
 
@@ -187,8 +229,8 @@ export default function DatabasePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
-            <div className="flex-1 relative">
+          <div className="flex gap-4 flex-wrap">
+            <div className="flex-1 relative min-w-64">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search by email, domain, name, or campaign..."
@@ -197,13 +239,13 @@ export default function DatabasePage() {
                 className="pl-10"
               />
             </div>
-            <Button onClick={loadLeads} variant="outline">
-              <RefreshCw className="mr-2 h-4 w-4" />
+            <Button onClick={loadLeads} variant="outline" disabled={isLoading}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button onClick={handleExportAll} variant="default">
+            <Button onClick={handleExportAll} variant="default" disabled={isLoading}>
               <Download className="mr-2 h-4 w-4" />
-              Export ({filteredLeads.length})
+              Export ({totalCount})
             </Button>
           </div>
         </CardContent>
@@ -215,6 +257,7 @@ export default function DatabasePage() {
           <CardTitle>All Leads</CardTitle>
           <CardDescription>
             {filteredLeads.length} {filteredLeads.length === 1 ? 'lead' : 'leads'} found
+            {totalCount > PAGE_SIZE && ` (Page ${currentPage} of ${totalPages})`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -230,7 +273,10 @@ export default function DatabasePage() {
               </p>
               {searchQuery && (
                 <Button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setCurrentPage(1);
+                  }}
                   variant="outline"
                   className="mt-4"
                 >
@@ -239,75 +285,109 @@ export default function DatabasePage() {
               )}
             </div>
           ) : (
-            <div className="border rounded-lg overflow-hidden">
-              <div className="max-h-96 overflow-y-auto overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
-                    <tr className="border-b">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                        Email
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                        Name
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                        Campaigns
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                        Date Added
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredLeads.map((lead) => (
-                      <tr key={lead.email} className="border-b hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="font-medium max-w-xs truncate" title={lead.email}>
-                            {lead.email}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="text-gray-700 dark:text-gray-300 max-w-xs truncate" title={lead.display_name || undefined}>
-                            {lead.display_name || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex flex-wrap gap-1 max-w-sm">
-                            {lead.campaigns.slice(0, 2).map((campaign, idx) => (
-                              <Badge key={idx} variant="secondary" className="text-xs">
-                                {campaign}
-                              </Badge>
-                            ))}
-                            {lead.campaigns.length > 2 && (
-                              <Badge variant="outline" className="text-xs" title={lead.campaigns.join(', ')}>
-                                +{lead.campaigns.length - 2} more
-                              </Badge>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {format(new Date(lead.date_added), 'MMM d, yyyy')}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <Button
-                            onClick={() => handleDeleteLead(lead.email)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </td>
+            <div className="space-y-4">
+              <div className="border rounded-lg overflow-hidden">
+                <div className="max-h-96 overflow-y-auto overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
+                      <tr className="border-b">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                          Email
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                          Name
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                          Campaigns
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                          Date Added
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {filteredLeads.map((lead) => (
+                        <tr key={lead.email} className="border-b hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="font-medium max-w-xs truncate" title={lead.email}>
+                              {lead.email}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="text-gray-700 dark:text-gray-300 max-w-xs truncate" title={lead.display_name || undefined}>
+                              {lead.display_name || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex flex-wrap gap-1 max-w-sm">
+                              {lead.campaigns.slice(0, 2).map((campaign, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs">
+                                  {campaign}
+                                </Badge>
+                              ))}
+                              {lead.campaigns.length > 2 && (
+                                <Badge variant="outline" className="text-xs" title={lead.campaigns.join(', ')}>
+                                  +{lead.campaigns.length - 2} more
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {format(new Date(lead.date_added), 'MMM d, yyyy')}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <Button
+                              onClick={() => handleDeleteLead(lead.email)}
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    Showing {((currentPage - 1) * PAGE_SIZE) + 1} to {Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount} leads
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1 || isLoading}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center px-3 text-sm">
+                      Page {currentPage} of {totalPages}
+                    </div>
+                    <Button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages || isLoading}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
@@ -329,7 +409,10 @@ export default function DatabasePage() {
                   key={idx}
                   variant="outline"
                   className="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950"
-                  onClick={() => setSearchQuery(campaign)}
+                  onClick={() => {
+                    setSearchQuery(campaign);
+                    setCurrentPage(1);
+                  }}
                 >
                   {campaign}
                 </Badge>
