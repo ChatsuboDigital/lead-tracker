@@ -82,7 +82,7 @@ export default function DatabasePage() {
         // Email domain search (after @)
         emailDomain.includes(query) ||
         // Display name search
-        lead.display_name.toLowerCase().includes(query) ||
+        (lead.display_name?.toLowerCase().includes(query) || false) ||
         // Campaign search
         lead.campaigns.some(c => c.toLowerCase().includes(query))
       );
@@ -270,8 +270,8 @@ export default function DatabasePage() {
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="text-gray-700 dark:text-gray-300 max-w-xs truncate" title={lead.display_name}>
-                            {lead.display_name}
+                          <div className="text-gray-700 dark:text-gray-300 max-w-xs truncate" title={lead.display_name || undefined}>
+                            {lead.display_name || 'N/A'}
                           </div>
                         </td>
                         <td className="py-3 px-4">

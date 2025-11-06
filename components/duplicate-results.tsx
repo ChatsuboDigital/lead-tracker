@@ -31,7 +31,6 @@ export function DuplicateResults({
 }: DuplicateResultsProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
 
   const filterLeads = (leads: any[], query: string) => {
     if (!query.trim()) return leads;
@@ -72,64 +71,6 @@ export function DuplicateResults({
     onSaveComplete();
   };
 
-  const handleExportAll = () => {
-    setIsExporting(true);
-    try {
-      const leadsToExport = allData.map((row) => ({
-        email: row[emailColumn].toLowerCase().trim(),
-        display_name: row['name'] || row['first_name'] || row['full_name'] || row[emailColumn],
-        campaigns: [campaignName],
-        date_added: new Date().toISOString(),
-        last_updated: new Date().toISOString(),
-        source_data: row,
-      })) as Lead[];
-      
-      const csvBlob = exportToCSV(leadsToExport, 'all', '');
-      const filename = `${campaignName.toLowerCase().replace(/\s+/g, '-')}-all-leads-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-      downloadBlob(csvBlob, filename);
-      
-      toast.success('All leads exported successfully!');
-    } catch (error) {
-      toast.error('Failed to export leads.');
-      console.error('Export error:', error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleExportNewOnly = () => {
-    if (newLeads.length === 0) {
-      toast.error('No new leads to export.');
-      return;
-    }
-
-    setIsExporting(true);
-    try {
-      // Export only new leads (duplicates removed) in original CSV format
-      const csvBlob = exportToCSV(
-        newLeads.map((row) => ({
-          email: row[emailColumn],
-          display_name: row['name'] || row['first_name'] || '',
-          campaigns: [],
-          date_added: new Date().toISOString(),
-          last_updated: new Date().toISOString(),
-          source_data: row,
-        })) as Lead[],
-        'all',
-        ''
-      );
-      
-      const filename = `${campaignName.toLowerCase().replace(/\s+/g, '-')}-duplicates-removed-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-      downloadBlob(csvBlob, filename);
-      
-      toast.success(`Exported ${newLeads.length} unique leads (${duplicates.length} duplicates removed)`);
-    } catch (error) {
-      toast.error('Failed to export leads.');
-      console.error('Export error:', error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
