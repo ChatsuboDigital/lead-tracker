@@ -1,0 +1,11 @@
+email,first_name,last_name,company,phone,title,notes
+john.doe@example.com,John,Doe,Acme Corporation,555-0101,CEO,VIP client - high priority
+jane.smith@techcorp.com,Jane,Smith,Tech Corp,555-0102,CTO,Interested in enterprise plan
+bob.johnson@startup.io,Bob,Johnson,StartupXYZ,555-0103,Founder,Follow up in Q2
+alice.williams@bigco.com,Alice,Williams,BigCo Industries,555-0104,VP Sales,Requested demo
+charlie.brown@smallbiz.net,Charlie,Brown,Small Business LLC,555-0105,Owner,Budget constraints
+diana.davis@consulting.com,Diana,Davis,Davis Consulting,555-0106,Principal,Warm lead
+edward.miller@agency.com,Edward,Miller,Creative Agency,555-0107,Director,Needs custom solution
+fiona.wilson@nonprofit.org,Fiona,Wilson,Nonprofit Foundation,555-0108,Executive Director,Discount eligible
+george.taylor@retail.com,George,Taylor,Retail Chain Inc,555-0109,Manager,Multiple locations
+hannah.anderson@healthcare.com,Hannah,Anderson,Healthcare Plus,555-0110,Administrator,HIPAA requirements
