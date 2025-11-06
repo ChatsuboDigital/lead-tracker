@@ -1,5 +1,7 @@
 # Lead Deduplicator - Smart Lead Management
 
+<!-- Last updated: 2025-11-06 -->
+
 A streamlined Next.js 14 application for lead deduplication, campaign tracking, and database management.
 
 ## Features
