@@ -52,11 +52,13 @@ export default function DatabasePage() {
         .select('*', { count: 'exact' })
         .order('date_added', { ascending: false });
 
-      // Apply search filter
+      // **Important Fix**: We are removing campaign search from the main query
+      // because `cs` does an exact match, not a partial one.
+      // We will apply a more robust client-side filter later.
       if (debouncedSearch.trim()) {
         const queryLower = debouncedSearch.toLowerCase();
         query = query.or(
-          `email.ilike.%${queryLower}%,display_name.ilike.%${queryLower}%,campaigns.cs.{${queryLower}}`
+          `email.ilike.%${queryLower}%,display_name.ilike.%${queryLower}%`
         );
       }
 
@@ -69,7 +71,20 @@ export default function DatabasePage() {
 
       if (error) throw error;
 
-      setLeads(data || []);
+      let leadsToDisplay = data || [];
+
+      // **Campaign Search Fix**: Apply a second, client-side filter for campaigns.
+      // This allows for partial matches within campaign names.
+      if (debouncedSearch.trim()) {
+        const queryLower = debouncedSearch.toLowerCase();
+        leadsToDisplay = leadsToDisplay.filter(lead => 
+          lead.campaigns.some(c => c.toLowerCase().includes(queryLower)) ||
+          lead.email.toLowerCase().includes(queryLower) ||
+          (lead.display_name || '').toLowerCase().includes(queryLower)
+        );
+      }
+
+      setLeads(leadsToDisplay);
       setTotalCount(count || 0);
     } catch (error) {
       console.error('Error loading leads:', error);
@@ -112,7 +127,7 @@ export default function DatabasePage() {
     try {
       setIsLoading(true);
       
-      // Fetch all leads for export
+      // Fetch all leads that match the filter, without pagination
       let query = supabase
         .from('leads')
         .select('*')
@@ -120,16 +135,33 @@ export default function DatabasePage() {
 
       if (debouncedSearch.trim()) {
         const queryLower = debouncedSearch.toLowerCase();
+        // Broader search on server
         query = query.or(
-          `email.ilike.%${queryLower}%,display_name.ilike.%${queryLower}%,campaigns.cs.{${queryLower}}`
+          `email.ilike.%${queryLower}%,display_name.ilike.%${queryLower}%`
         );
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
 
-      const csvData = data.map(lead => ({
+      let leadsToExport = data || [];
+
+      // Apply the same robust filtering logic for the export
+      if (debouncedSearch.trim()) {
+        const queryLower = debouncedSearch.toLowerCase();
+        leadsToExport = leadsToExport.filter(lead => 
+          lead.campaigns.some(c => c.toLowerCase().includes(queryLower)) ||
+          lead.email.toLowerCase().includes(queryLower) ||
+          (lead.display_name || '').toLowerCase().includes(queryLower)
+        );
+      }
+      
+      if (leadsToExport.length === 0) {
+        toast.info("No leads to export for the current search.");
+        return;
+      }
+
+      const csvData = leadsToExport.map(lead => ({
         email: lead.email,
         display_name: lead.display_name,
         campaigns: lead.campaigns.join('; '),
@@ -142,7 +174,7 @@ export default function DatabasePage() {
       const filename = `master-database-${format(new Date(), 'yyyy-MM-dd')}.csv`;
       downloadBlob(blob, filename);
       
-      toast.success(`Exported ${data.length} leads`);
+      toast.success(`Exported ${leadsToExport.length} leads`);
     } catch (error) {
       console.error('Error exporting leads:', error);
       toast.error('Failed to export leads');
@@ -215,7 +247,7 @@ export default function DatabasePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-green-600">{filteredLeads.length.toLocaleString()}</div>
+            <div className="text-4xl font-bold text-green-600">{leads.length.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
@@ -256,7 +288,7 @@ export default function DatabasePage() {
         <CardHeader>
           <CardTitle>All Leads</CardTitle>
           <CardDescription>
-            {filteredLeads.length} {filteredLeads.length === 1 ? 'lead' : 'leads'} found
+            {leads.length} {leads.length === 1 ? 'lead' : 'leads'} found
             {totalCount > PAGE_SIZE && ` (Page ${currentPage} of ${totalPages})`}
           </CardDescription>
         </CardHeader>
@@ -266,7 +298,7 @@ export default function DatabasePage() {
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <p className="mt-4 text-gray-600">Loading leads...</p>
             </div>
-          ) : filteredLeads.length === 0 ? (
+          ) : leads.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-600">
                 {searchQuery ? 'No leads match your search' : 'No leads in database yet'}
@@ -309,7 +341,7 @@ export default function DatabasePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredLeads.map((lead) => (
+                      {leads.map((lead) => (
                         <tr key={lead.email} className="border-b hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
                           <td className="py-3 px-4">
                             <div className="font-medium max-w-xs truncate" title={lead.email}>
