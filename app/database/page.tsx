@@ -40,18 +40,11 @@ export default function DatabasePage() {
     loadLeads();
   }, [currentPage, debouncedSearch]);
 
-  useEffect(() => {
-    // We can load stats less frequently or when total count changes
-    loadStats();
-  }, [totalCount]);
-
   const loadLeads = useCallback(async () => {
     setIsLoading(true);
     try {
       const offset = (currentPage - 1) * PAGE_SIZE;
 
-      // **Major Fix**: Calling the new database function `search_leads` via RPC.
-      // This handles all searching and pagination efficiently on the server.
       const { data, error } = await supabase.rpc('search_leads', {
         search_term: debouncedSearch,
         page_limit: PAGE_SIZE,
@@ -69,6 +62,11 @@ export default function DatabasePage() {
       setLeads(leads);
       setTotalCount(newTotalCount);
 
+      // **Fix**: Refresh stats after loading leads to get accurate counts
+      if (debouncedSearch === '') {
+        loadStats(newTotalCount, leads);
+      }
+
     } catch (error) {
       console.error('Error loading leads:', error);
       toast.error('Failed to load leads. Check console for details.');
@@ -77,29 +75,34 @@ export default function DatabasePage() {
     }
   }, [currentPage, debouncedSearch]);
 
-  const loadStats = useCallback(async () => {
+  const loadStats = useCallback(async (currentTotal?: number, currentLeads?: Lead[]) => {
     try {
-      // Get total count and campaigns efficiently
-      const { data, error } = await supabase
-        .from('leads')
-        .select('campaigns')
-        .limit(1000); // Limit for performance
+      const total = currentTotal ?? (await supabase.from('leads').select('*', { count: 'exact', head: true })).count ?? 0;
 
-      if (error) throw error;
-
-      const allCampaigns = new Set<string>();
-      data?.forEach(lead => {
-        lead.campaigns?.forEach((c: string) => allCampaigns.add(c));
-      });
+      let allCampaigns = new Set<string>();
+      if (currentLeads) {
+        currentLeads.forEach(lead => {
+          lead.campaigns?.forEach((c: string) => allCampaigns.add(c));
+        });
+      } else {
+        const { data, error } = await supabase
+          .from('leads')
+          .select('campaigns')
+          .limit(1000);
+        if (error) throw error;
+        data?.forEach(lead => {
+          lead.campaigns?.forEach((c: string) => allCampaigns.add(c));
+        });
+      }      
 
       setStats({
-        total: totalCount,
+        total: total,
         campaigns: Array.from(allCampaigns).sort(),
       });
     } catch (error) {
       console.error('Error loading stats:', error);
     }
-  }, [totalCount]);
+  }, []);
 
   // This is no longer needed as filtering is done on the server.
   // const filteredLeads = useMemo(() => {
