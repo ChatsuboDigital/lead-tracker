@@ -41,54 +41,37 @@ export default function DatabasePage() {
   }, [currentPage, debouncedSearch]);
 
   useEffect(() => {
+    // We can load stats less frequently or when total count changes
     loadStats();
-  }, []);
+  }, [totalCount]);
 
   const loadLeads = useCallback(async () => {
     setIsLoading(true);
     try {
-      let query = supabase
-        .from('leads')
-        .select('*', { count: 'exact' })
-        .order('date_added', { ascending: false });
+      const offset = (currentPage - 1) * PAGE_SIZE;
 
-      // **Important Fix**: We are removing campaign search from the main query
-      // because `cs` does an exact match, not a partial one.
-      // We will apply a more robust client-side filter later.
-      if (debouncedSearch.trim()) {
-        const queryLower = debouncedSearch.toLowerCase();
-        query = query.or(
-          `email.ilike.%${queryLower}%,display_name.ilike.%${queryLower}%`
-        );
+      // **Major Fix**: Calling the new database function `search_leads` via RPC.
+      // This handles all searching and pagination efficiently on the server.
+      const { data, error } = await supabase.rpc('search_leads', {
+        search_term: debouncedSearch,
+        page_limit: PAGE_SIZE,
+        page_offset: offset,
+      });
+
+      if (error) {
+        console.error('RPC Error:', error);
+        throw error;
       }
 
-      // Apply pagination
-      const from = (currentPage - 1) * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
-      query = query.range(from, to);
+      const leads = data || [];
+      const newTotalCount = leads.length > 0 ? leads[0].total_count : 0;
 
-      const { data, error, count } = await query;
+      setLeads(leads);
+      setTotalCount(newTotalCount);
 
-      if (error) throw error;
-
-      let leadsToDisplay = data || [];
-
-      // **Campaign Search Fix**: Apply a second, client-side filter for campaigns.
-      // This allows for partial matches within campaign names.
-      if (debouncedSearch.trim()) {
-        const queryLower = debouncedSearch.toLowerCase();
-        leadsToDisplay = leadsToDisplay.filter(lead => 
-          lead.campaigns.some(c => c.toLowerCase().includes(queryLower)) ||
-          lead.email.toLowerCase().includes(queryLower) ||
-          (lead.display_name || '').toLowerCase().includes(queryLower)
-        );
-      }
-
-      setLeads(leadsToDisplay);
-      setTotalCount(count || 0);
     } catch (error) {
       console.error('Error loading leads:', error);
-      toast.error('Failed to load leads');
+      toast.error('Failed to load leads. Check console for details.');
     } finally {
       setIsLoading(false);
     }
@@ -118,46 +101,30 @@ export default function DatabasePage() {
     }
   }, [totalCount]);
 
-  const filteredLeads = useMemo(() => {
-    // Server-side filtering is already applied, this is just for display
-    return leads;
-  }, [leads]);
+  // This is no longer needed as filtering is done on the server.
+  // const filteredLeads = useMemo(() => {
+  //   return leads;
+  // }, [leads]);
 
   const handleExportAll = async () => {
     try {
       setIsLoading(true);
+      toast.info("Preparing your export... this may take a moment.")
       
-      // Fetch all leads that match the filter, without pagination
-      let query = supabase
-        .from('leads')
-        .select('*')
-        .order('date_added', { ascending: false });
+      // Fetch ALL leads matching the search term for export by calling the RPC with a large limit.
+      const { data, error } = await supabase.rpc('search_leads', {
+        search_term: debouncedSearch,
+        page_limit: 100000, // A large number to get all results
+        page_offset: 0
+      });
 
-      if (debouncedSearch.trim()) {
-        const queryLower = debouncedSearch.toLowerCase();
-        // Broader search on server
-        query = query.or(
-          `email.ilike.%${queryLower}%,display_name.ilike.%${queryLower}%`
-        );
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
 
-      let leadsToExport = data || [];
+      const leadsToExport = data || [];
 
-      // Apply the same robust filtering logic for the export
-      if (debouncedSearch.trim()) {
-        const queryLower = debouncedSearch.toLowerCase();
-        leadsToExport = leadsToExport.filter(lead => 
-          lead.campaigns.some(c => c.toLowerCase().includes(queryLower)) ||
-          lead.email.toLowerCase().includes(queryLower) ||
-          (lead.display_name || '').toLowerCase().includes(queryLower)
-        );
-      }
-      
       if (leadsToExport.length === 0) {
         toast.info("No leads to export for the current search.");
+        setIsLoading(false);
         return;
       }
 
@@ -288,7 +255,7 @@ export default function DatabasePage() {
         <CardHeader>
           <CardTitle>All Leads</CardTitle>
           <CardDescription>
-            {leads.length} {leads.length === 1 ? 'lead' : 'leads'} found
+            {totalCount.toLocaleString()} {totalCount === 1 ? 'lead' : 'leads'} found
             {totalCount > PAGE_SIZE && ` (Page ${currentPage} of ${totalPages})`}
           </CardDescription>
         </CardHeader>
