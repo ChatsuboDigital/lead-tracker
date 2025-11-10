@@ -68,36 +68,36 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-3">Settings</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400">
+    <div className="container mx-auto py-12 px-6 max-w-4xl">
+      <div className="mb-10">
+        <h1 className="text-3xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Settings</h1>
+        <p className="text-base text-gray-600 dark:text-gray-400">
           Manage your application settings and database
         </p>
       </div>
 
       {/* Database Management */}
-      <Card className="border-red-200 dark:border-red-800">
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Database className="h-5 w-5 text-red-600" />
-            <CardTitle className="text-red-600">Database Management</CardTitle>
+            <Database className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            <CardTitle className="text-gray-900 dark:text-gray-100">Database Management</CardTitle>
           </div>
-          <CardDescription>
+          <CardDescription className="text-gray-600 dark:text-gray-400">
             Danger zone - These actions cannot be undone
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {!showConfirm ? (
             <>
-              <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="h-5 w-5 text-gray-700 dark:text-gray-300 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-red-900 dark:text-red-100 mb-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
                       Clear All Leads
                     </h3>
-                    <p className="text-sm text-red-800 dark:text-red-200 mb-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                       This will permanently delete all leads from your database. This action cannot be undone.
                       All lead data, campaigns, and history will be lost.
                     </p>
@@ -105,7 +105,7 @@ export default function SettingsPage() {
                       onClick={handleShowConfirm}
                       variant="destructive"
                       size="sm"
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Clear Database
@@ -116,17 +116,17 @@ export default function SettingsPage() {
             </>
           ) : (
             <>
-              <div className="bg-red-50 dark:bg-red-950 border-2 border-red-500 dark:border-red-600 rounded-lg p-6">
+              <div className="bg-gray-50 dark:bg-gray-900/50 border-2 border-gray-300 dark:border-gray-700 rounded-lg p-6">
                 <div className="flex items-start gap-3 mb-4">
-                  <AlertCircle className="h-6 w-6 text-red-600 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-6 w-6 text-gray-700 dark:text-gray-300 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h3 className="font-bold text-red-900 dark:text-red-100 text-lg mb-2">
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-2">
                       ⚠️ Are you absolutely sure?
                     </h3>
-                    <p className="text-sm text-red-800 dark:text-red-200 mb-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       This will permanently delete <strong>{leadCount?.toLocaleString() || 0} leads</strong> from your database.
                     </p>
-                    <p className="text-sm text-red-800 dark:text-red-200 font-semibold">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 font-semibold">
                       This action cannot be undone. All data will be lost forever.
                     </p>
                   </div>
@@ -134,7 +134,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-4 mt-6">
                   <div>
-                    <Label htmlFor="confirm-text" className="text-red-900 dark:text-red-100 font-semibold">
+                    <Label htmlFor="confirm-text" className="text-gray-900 dark:text-gray-100 font-semibold">
                       Type "DELETE ALL LEADS" to confirm
                     </Label>
                     <Input
@@ -142,7 +142,7 @@ export default function SettingsPage() {
                       value={confirmText}
                       onChange={(e) => setConfirmText(e.target.value)}
                       placeholder="DELETE ALL LEADS"
-                      className="mt-2 border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500"
+                      className="mt-2 border-gray-200 dark:border-gray-800"
                     />
                   </div>
 
@@ -151,7 +151,7 @@ export default function SettingsPage() {
                       onClick={handleClearDatabase}
                       disabled={isDeleting || confirmText !== 'DELETE ALL LEADS'}
                       variant="destructive"
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       {isDeleting ? 'Deleting...' : 'Yes, Delete Everything'}
@@ -160,6 +160,7 @@ export default function SettingsPage() {
                       onClick={handleCancel}
                       variant="outline"
                       disabled={isDeleting}
+                      className="border-gray-200 dark:border-gray-800"
                     >
                       Cancel
                     </Button>
@@ -172,19 +173,19 @@ export default function SettingsPage() {
       </Card>
 
       {/* Info Section */}
-      <Card className="mt-6">
+      <Card className="mt-6 border-gray-200 dark:border-gray-800 shadow-sm">
         <CardHeader>
-          <CardTitle>About</CardTitle>
+          <CardTitle className="text-gray-900 dark:text-gray-100">About</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
             <p>
-              <strong>Lead Deduplicator</strong> - Smart lead management and deduplication tool
+              <strong className="text-gray-900 dark:text-gray-100">Lead Tracker</strong> - Smart lead management and deduplication tool
             </p>
             <p>
               Version 1.0.0
             </p>
-            <p className="pt-2 border-t">
+            <p className="pt-2 border-t border-gray-200 dark:border-gray-800">
               Built with Next.js 14, TypeScript, Tailwind CSS, and Supabase
             </p>
           </div>

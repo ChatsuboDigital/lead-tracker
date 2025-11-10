@@ -80,19 +80,19 @@ export function LeadTable({
 
   if (leads.length === 0) {
     return (
-      <div className="text-center py-12 border rounded-lg">
-        <p className="text-gray-500 text-lg">No leads found</p>
-        <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filters</p>
+      <div className="text-center py-12 border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50/50 dark:bg-gray-900/30">
+        <p className="text-gray-600 dark:text-gray-400 text-base">No leads found</p>
+        <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">Try adjusting your search or filters</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="border-b border-gray-200 dark:border-gray-800">
               <TableHead className="w-12">
                 <Checkbox
                   checked={allSelected}
@@ -102,30 +102,30 @@ export function LeadTable({
                 />
               </TableHead>
               <TableHead
-                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-900/30 text-sm font-medium text-gray-700 dark:text-gray-300"
                 onClick={() => handleSort('email')}
               >
                 Email {sortColumn === 'email' && (sortDirection === 'asc' ? '↑' : '↓')}
               </TableHead>
               <TableHead
-                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-900/30 text-sm font-medium text-gray-700 dark:text-gray-300"
                 onClick={() => handleSort('display_name')}
               >
                 Display Name {sortColumn === 'display_name' && (sortDirection === 'asc' ? '↑' : '↓')}
               </TableHead>
-              <TableHead>Campaigns</TableHead>
+              <TableHead className="text-sm font-medium text-gray-700 dark:text-gray-300">Campaigns</TableHead>
               <TableHead
-                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-900/30 text-sm font-medium text-gray-700 dark:text-gray-300"
                 onClick={() => handleSort('date_added')}
               >
                 Date Added {sortColumn === 'date_added' && (sortDirection === 'asc' ? '↑' : '↓')}
               </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right text-sm font-medium text-gray-700 dark:text-gray-300">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedLeads.map((lead) => (
-              <TableRow key={lead.email} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+              <TableRow key={lead.email} className="border-b border-gray-100 dark:border-gray-900 hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors">
                 <TableCell>
                   <Checkbox
                     checked={selectedLeads.includes(lead.email)}
@@ -166,8 +166,8 @@ export function LeadTable({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+      <div className="flex items-center justify-between mt-4">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           Page {currentPage} of {totalPages}
         </p>
         <div className="flex items-center gap-2">
@@ -176,6 +176,7 @@ export function LeadTable({
             size="sm"
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
+            className="border-gray-200 dark:border-gray-800"
           >
             <ChevronsLeft className="h-4 w-4" />
           </Button>
@@ -184,6 +185,7 @@ export function LeadTable({
             size="sm"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
+            className="border-gray-200 dark:border-gray-800"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -206,6 +208,7 @@ export function LeadTable({
                   variant={currentPage === pageNum ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => onPageChange(pageNum)}
+                  className={currentPage === pageNum ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200' : 'border-gray-200 dark:border-gray-800'}
                 >
                   {pageNum}
                 </Button>
@@ -217,6 +220,7 @@ export function LeadTable({
             size="sm"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
+            className="border-gray-200 dark:border-gray-800"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -225,6 +229,7 @@ export function LeadTable({
             size="sm"
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages}
+            className="border-gray-200 dark:border-gray-800"
           >
             <ChevronsRight className="h-4 w-4" />
           </Button>

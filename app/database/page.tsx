@@ -178,74 +178,74 @@ export default function DatabasePage() {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-3">Master Database</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400">
+    <div className="container mx-auto py-12 px-6 max-w-7xl">
+      <div className="mb-10">
+        <h1 className="text-3xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Master Database</h1>
+        <p className="text-base text-gray-600 dark:text-gray-400">
           View and search all leads in your database
         </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
+        <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
               Total Leads
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-blue-600">{totalCount.toLocaleString()}</div>
+            <div className="text-4xl font-semibold text-gray-900 dark:text-gray-100">{totalCount.toLocaleString()}</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800">
+        <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wide">
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
               Campaigns
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-purple-600">{stats.campaigns.length}</div>
+            <div className="text-4xl font-semibold text-gray-900 dark:text-gray-100">{stats.campaigns.length}</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
+        <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-green-700 dark:text-green-300 uppercase tracking-wide">
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
               Showing
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-green-600">{leads.length.toLocaleString()}</div>
+            <div className="text-4xl font-semibold text-gray-900 dark:text-gray-100">{leads.length.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Search and Actions */}
-      <Card className="mb-6">
+      <Card className="mb-6 border-gray-200 dark:border-gray-800 shadow-sm">
         <CardHeader>
-          <CardTitle>Search & Filter</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-gray-900 dark:text-gray-100">Search & Filter</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">
             Search by email, domain (e.g., @gmail.com), name, or campaign
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             <div className="flex-1 relative min-w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <Input
                 placeholder="Search by email, domain, name, or campaign..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 border-gray-200 dark:border-gray-800"
               />
             </div>
-            <Button onClick={loadLeads} variant="outline" disabled={isLoading}>
+            <Button onClick={loadLeads} variant="outline" disabled={isLoading} className="border-gray-200 dark:border-gray-800">
               <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button onClick={handleExportAll} variant="default" disabled={isLoading}>
+            <Button onClick={handleExportAll} variant="default" disabled={isLoading} className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200">
               <Download className="mr-2 h-4 w-4" />
               Export ({totalCount})
             </Button>
@@ -254,10 +254,10 @@ export default function DatabasePage() {
       </Card>
 
       {/* Leads Table */}
-      <Card>
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
         <CardHeader>
-          <CardTitle>All Leads</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-gray-900 dark:text-gray-100">All Leads</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">
             {totalCount.toLocaleString()} {totalCount === 1 ? 'lead' : 'leads'} found
             {totalCount > PAGE_SIZE && ` (Page ${currentPage} of ${totalPages})`}
           </CardDescription>
@@ -265,8 +265,8 @@ export default function DatabasePage() {
         <CardContent>
           {isLoading ? (
             <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading leads...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-gray-900 dark:border-gray-700 dark:border-t-gray-100"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading leads...</p>
             </div>
           ) : leads.length === 0 ? (
             <div className="text-center py-12">
@@ -291,28 +291,28 @@ export default function DatabasePage() {
               <div className="border rounded-lg overflow-hidden">
                 <div className="max-h-96 overflow-y-auto overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
-                      <tr className="border-b">
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    <thead className="bg-gray-50/50 dark:bg-gray-900/50 sticky top-0 z-10">
+                      <tr className="border-b border-gray-200 dark:border-gray-800">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap text-sm">
                           Email
                         </th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap text-sm">
                           Name
                         </th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap text-sm">
                           Campaigns
                         </th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap text-sm">
                           Date Added
                         </th>
-                        <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                        <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap text-sm">
                           Actions
                         </th>
                       </tr>
                     </thead>
                     <tbody>
                       {leads.map((lead) => (
-                        <tr key={lead.email} className="border-b hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                        <tr key={lead.email} className="border-b border-gray-100 dark:border-gray-900 hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors">
                           <td className="py-3 px-4">
                             <div className="font-medium max-w-xs truncate" title={lead.email}>
                               {lead.email}
@@ -397,10 +397,10 @@ export default function DatabasePage() {
 
       {/* Campaign List */}
       {stats.campaigns.length > 0 && (
-        <Card className="mt-6">
+        <Card className="mt-6 border-gray-200 dark:border-gray-800 shadow-sm">
           <CardHeader>
-            <CardTitle>All Campaigns</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-gray-900 dark:text-gray-100">All Campaigns</CardTitle>
+            <CardDescription className="text-gray-600 dark:text-gray-400">
               {stats.campaigns.length} {stats.campaigns.length === 1 ? 'campaign' : 'campaigns'} tracked
             </CardDescription>
           </CardHeader>
@@ -410,7 +410,7 @@ export default function DatabasePage() {
                 <Badge
                   key={idx}
                   variant="outline"
-                  className="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950"
+                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-800"
                   onClick={() => {
                     setSearchQuery(campaign);
                     setCurrentPage(1);

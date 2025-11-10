@@ -35,29 +35,29 @@ export function StatsCards() {
       title: 'Total Leads',
       value: stats.totalLeads,
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100 dark:bg-blue-950',
+      color: 'text-gray-700 dark:text-gray-300',
+      bgColor: 'bg-gray-100 dark:bg-gray-800',
     },
     {
       title: 'This Week',
       value: stats.leadsThisWeek,
       icon: TrendingUp,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100 dark:bg-green-950',
+      color: 'text-gray-700 dark:text-gray-300',
+      bgColor: 'bg-gray-100 dark:bg-gray-800',
     },
     {
       title: 'This Month',
       value: stats.leadsThisMonth,
       icon: Calendar,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-950',
+      color: 'text-gray-700 dark:text-gray-300',
+      bgColor: 'bg-gray-100 dark:bg-gray-800',
     },
     {
       title: 'Total Campaigns',
       value: stats.totalCampaigns,
       icon: Tag,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100 dark:bg-orange-950',
+      color: 'text-gray-700 dark:text-gray-300',
+      bgColor: 'bg-gray-100 dark:bg-gray-800',
     },
   ];
 
@@ -85,15 +85,15 @@ export function StatsCards() {
       {statCards.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card key={stat.title}>
+          <Card key={stat.title} className="border-gray-200 dark:border-gray-800 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.title}</CardTitle>
+              <div className={`p-2 rounded-md ${stat.bgColor}`}>
                 <Icon className={`h-4 w-4 ${stat.color}`} />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value.toLocaleString()}</div>
+              <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{stat.value.toLocaleString()}</div>
             </CardContent>
           </Card>
         );

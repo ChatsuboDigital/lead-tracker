@@ -75,35 +75,35 @@ export function DuplicateResults({
   return (
     <div className="space-y-6">
       {/* Summary Card */}
-      <Card>
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">✓ Complete!</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl text-gray-900 dark:text-gray-100">✓ Complete!</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">
             Leads saved to database and ready to export
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-xl border-2 border-green-200 dark:border-green-800 shadow-sm">
-              <div className="text-5xl font-bold text-green-600 mb-2">
+            <div className="text-center p-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div className="text-5xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 {newLeads.length.toLocaleString()}
               </div>
-              <div className="text-sm font-semibold text-green-700 dark:text-green-300 uppercase tracking-wide">
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 New Leads Saved
               </div>
             </div>
-            <div className="text-center p-6 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 rounded-xl border-2 border-red-200 dark:border-red-800 shadow-sm">
-              <div className="text-5xl font-bold text-red-600 mb-2">
+            <div className="text-center p-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div className="text-5xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 {duplicates.length.toLocaleString()}
               </div>
-              <div className="text-sm font-semibold text-red-700 dark:text-red-300 uppercase tracking-wide">
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Duplicates Skipped
               </div>
             </div>
           </div>
 
-          <div className="space-y-2 mb-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-sm text-blue-900 dark:text-blue-100 space-y-1">
+          <div className="space-y-2 mb-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
+            <p className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
               <span className="block">✓ {newLeads.length.toLocaleString()} new leads saved to database</span>
               <span className="block">✓ {duplicates.length.toLocaleString()} duplicate emails skipped</span>
               <span className="block">✓ Clean CSV ready to download</span>
@@ -115,7 +115,7 @@ export function DuplicateResults({
               onClick={handleExportCleanCSV}
               disabled={isSaving}
               size="lg"
-              className="flex-1 h-14 text-base font-semibold"
+              className="flex-1 h-12 text-base bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200"
             >
               <Download className="mr-2 h-5 w-5" />
               {isSaving ? 'Downloading...' : 'Download Clean CSV'}
@@ -124,7 +124,7 @@ export function DuplicateResults({
               onClick={handleStartOver}
               variant="outline"
               size="lg"
-              className="h-14 text-base font-semibold sm:w-auto w-full"
+              className="h-12 text-base sm:w-auto w-full border-gray-200 dark:border-gray-800"
             >
               Upload Another
             </Button>
@@ -134,10 +134,10 @@ export function DuplicateResults({
 
       {/* Optional: View Details */}
       {(newLeads.length > 0 || duplicates.length > 0) && (
-        <Card>
+        <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">Details</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg text-gray-900 dark:text-gray-100">Details</CardTitle>
+            <CardDescription className="text-gray-600 dark:text-gray-400">
               Review what was processed
             </CardDescription>
           </CardHeader>
@@ -145,13 +145,13 @@ export function DuplicateResults({
             <div className="space-y-4">
               {newLeads.length > 0 && (
                 <div>
-                  <h3 className="font-medium text-green-600 mb-2">✓ New Leads Added ({newLeads.length})</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">✓ New Leads Added ({newLeads.length})</h3>
                   <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                     {newLeads.slice(0, 5).map((lead, idx) => (
                       <div key={idx}>• {lead[emailColumn]}</div>
                     ))}
                     {newLeads.length > 5 && (
-                      <div className="text-gray-500 italic">...and {newLeads.length - 5} more</div>
+                      <div className="text-gray-500 dark:text-gray-500 italic">...and {newLeads.length - 5} more</div>
                     )}
                   </div>
                 </div>
@@ -159,13 +159,13 @@ export function DuplicateResults({
               
               {duplicates.length > 0 && (
                 <div>
-                  <h3 className="font-medium text-red-600 mb-2">✗ Duplicates Skipped ({duplicates.length})</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">✗ Duplicates Skipped ({duplicates.length})</h3>
                   <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                     {duplicates.slice(0, 5).map((lead, idx) => (
                       <div key={idx}>• {lead.email}</div>
                     ))}
                     {duplicates.length > 5 && (
-                      <div className="text-gray-500 italic">...and {duplicates.length - 5} more</div>
+                      <div className="text-gray-500 dark:text-gray-500 italic">...and {duplicates.length - 5} more</div>
                     )}
                   </div>
                 </div>

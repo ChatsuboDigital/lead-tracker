@@ -77,23 +77,23 @@ export default function HomePage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold mb-3">Upload Leads</h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 mb-2">
+    <div className="container mx-auto py-12 px-6 max-w-4xl">
+          <div className="mb-10 text-center">
+            <h1 className="text-3xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Upload Leads</h1>
+            <p className="text-base text-gray-600 dark:text-gray-400 mb-1">
               Automatically removes duplicates and adds new leads to your database
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-500">
               Drop your file → We check for duplicates → Download clean CSV
             </p>
           </div>
 
       {isChecking && (
-        <div className="flex items-center justify-center py-12">
+        <div className="flex items-center justify-center py-16">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-lg font-medium mb-2">Processing your leads...</p>
-            <p className="text-sm text-gray-600">Checking duplicates and saving to database</p>
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-300 border-t-gray-900 dark:border-gray-700 dark:border-t-gray-100 mx-auto mb-4"></div>
+            <p className="text-base font-medium mb-1 text-gray-900 dark:text-gray-100">Processing your leads...</p>
+            <p className="text-sm text-gray-500 dark:text-gray-500">Checking duplicates and saving to database</p>
           </div>
         </div>
       )}

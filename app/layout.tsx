@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <SupabaseErrorBoundary>
           <Navigation />
-          <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <main className="min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a]">
             {children}
           </main>
           <Toaster />

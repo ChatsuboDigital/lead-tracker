@@ -205,10 +205,10 @@ export function UploadCSV({ onUploadComplete }: UploadCSVProps) {
   return (
     <div className="space-y-6">
       {!showPreview ? (
-        <Card>
+        <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
           <CardHeader>
-            <CardTitle>Upload CSV File</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-gray-900 dark:text-gray-100">Upload CSV File</CardTitle>
+            <CardDescription className="text-gray-600 dark:text-gray-400">
               Drag and drop your CSV file or click to browse. Maximum file size: 50MB
             </CardDescription>
           </CardHeader>
@@ -219,8 +219,8 @@ export function UploadCSV({ onUploadComplete }: UploadCSVProps) {
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
                 isDragging
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                  : 'border-gray-300 dark:border-gray-700 hover:border-gray-400'
+                  ? 'border-gray-400 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
               }`}
             >
               <input
@@ -232,23 +232,23 @@ export function UploadCSV({ onUploadComplete }: UploadCSVProps) {
                 disabled={isProcessing}
               />
               <label htmlFor="file-upload" className="cursor-pointer">
-                <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-lg font-medium mb-2">
+                <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                <p className="text-base font-medium mb-2 text-gray-900 dark:text-gray-100">
                   {isProcessing ? 'Processing...' : 'Drop your CSV file here'}
                 </p>
-                <p className="text-sm text-gray-500">or click to browse</p>
+                <p className="text-sm text-gray-500 dark:text-gray-500">or click to browse</p>
               </label>
             </div>
           </CardContent>
         </Card>
       ) : (
         <>
-          <Card>
+          <Card className="border-gray-200 dark:border-gray-800 shadow-sm">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <CardTitle>Review & Configure</CardTitle>
-                  <CardDescription className="mt-2 space-y-1">
+                  <CardTitle className="text-gray-900 dark:text-gray-100">Review & Configure</CardTitle>
+                  <CardDescription className="mt-2 space-y-1 text-gray-600 dark:text-gray-400">
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
                       <span className="font-medium">{file?.name}</span>
@@ -260,7 +260,7 @@ export function UploadCSV({ onUploadComplete }: UploadCSVProps) {
                     </div>
                   </CardDescription>
                 </div>
-                <Button variant="outline" onClick={resetUpload}>
+                <Button variant="outline" onClick={resetUpload} className="border-gray-200 dark:border-gray-800">
                   Upload Different File
                 </Button>
               </div>
@@ -306,18 +306,18 @@ export function UploadCSV({ onUploadComplete }: UploadCSVProps) {
 
               {/* Validation Stats */}
               {emailColumn && (
-                <div className="flex flex-wrap gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <div className="flex flex-wrap gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-800">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
-                    <span className="font-medium text-sm">
-                      <span className="text-lg font-bold text-green-600">{validCount.toLocaleString()}</span> valid emails
+                    <CheckCircle2 className="h-5 w-5 text-gray-700 dark:text-gray-300 shrink-0" />
+                    <span className="font-medium text-sm text-gray-700 dark:text-gray-300">
+                      <span className="text-lg font-semibold">{validCount.toLocaleString()}</span> valid emails
                     </span>
                   </div>
                   {invalidCount > 0 && (
                     <div className="flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-yellow-600 shrink-0" />
-                      <span className="font-medium text-sm">
-                        <span className="text-lg font-bold text-yellow-600">{invalidCount.toLocaleString()}</span> invalid emails
+                      <AlertCircle className="h-5 w-5 text-gray-500 dark:text-gray-500 shrink-0" />
+                      <span className="font-medium text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-lg font-semibold">{invalidCount.toLocaleString()}</span> invalid emails
                       </span>
                     </div>
                   )}
@@ -331,17 +331,17 @@ export function UploadCSV({ onUploadComplete }: UploadCSVProps) {
                   <div className="border rounded-lg overflow-hidden">
                     <div className="max-h-64 overflow-y-auto overflow-x-auto">
                       <table className="w-full text-sm">
-                        <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
+                        <thead className="bg-gray-50/50 dark:bg-gray-900/50 sticky top-0 z-10">
                           <tr>
                             {headers.map((header) => (
                               <th
                                 key={header}
-                                className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap"
+                                className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap text-sm border-b border-gray-200 dark:border-gray-800"
                               >
                                 <div className="flex items-center gap-2">
                                   <span>{header}</span>
                                   {header === emailColumn && (
-                                    <Badge variant="secondary" className="text-xs shrink-0">
+                                    <Badge variant="secondary" className="text-xs shrink-0 bg-gray-100 dark:bg-gray-800">
                                       Email
                                     </Badge>
                                   )}
@@ -352,7 +352,7 @@ export function UploadCSV({ onUploadComplete }: UploadCSVProps) {
                         </thead>
                         <tbody>
                           {csvData.slice(0, 5).map((row, idx) => (
-                            <tr key={idx} className="border-t hover:bg-gray-50 dark:hover:bg-gray-900">
+                            <tr key={idx} className="border-t border-gray-100 dark:border-gray-900 hover:bg-gray-50/50 dark:hover:bg-gray-900/30">
                               {headers.map((header) => (
                                 <td key={header} className="px-3 py-2 whitespace-nowrap">
                                   <div className="max-w-xs truncate" title={row[header]}>
@@ -374,12 +374,12 @@ export function UploadCSV({ onUploadComplete }: UploadCSVProps) {
 
               {/* Process Button */}
               {emailColumn && (
-                <div className="pt-4 border-t">
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
                   <Button
                     onClick={handleProcessClick}
                     disabled={!campaignName.trim() || validCount === 0}
                     size="lg"
-                    className="w-full h-14 text-lg"
+                    className="w-full h-12 text-base bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50"
                   >
                     Process {validCount} Leads
                   </Button>
