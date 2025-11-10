@@ -131,7 +131,7 @@ export default function DatabasePage() {
         return;
       }
 
-      const csvData = leadsToExport.map(lead => ({
+      const csvData = leadsToExport.map((lead: Lead) => ({
         email: lead.email,
         display_name: lead.display_name,
         campaigns: lead.campaigns.join('; '),
